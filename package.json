@@ -1,5 +1,5 @@
 {
-  "name": "marp-mermaid-minimal",
+  "name": "marp-plus-cli",
   "version": "1.0.0",
   "main": "marp-engine.js",
   "license": "MIT",
