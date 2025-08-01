@@ -1,0 +1,11 @@
+{
+  "name": "marp-mermaid-minimal",
+  "version": "1.0.0",
+  "main": "marp-engine.js",
+  "license": "MIT",
+  "dependencies": {
+    "markdown-it-task-lists": "^2.1.1",
+    "mermaid": "^10.0.0",
+    "@marp-team/marp-cli": "^4.2.2"
+  }
+}
