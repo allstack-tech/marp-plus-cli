@@ -1,0 +1,40 @@
+name: Check Version Before Build
+
+on:
+  push:
+    paths:
+      - Dockerfile
+      - entrypoint.sh
+      - marp-engine.js
+      - package.json
+  pull_request:
+    paths:
+      - Dockerfile
+      - entrypoint.sh
+      - marp-engine.js
+      - package.json
+
+jobs:
+  check-version:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch main branch package.json
+        run: |
+          git fetch origin main:main
+          cp package.json package.json.current
+          git checkout main -- package.json
+          cp package.json package.json.main
+          mv package.json.current package.json
+      - name: Compare versions
+        id: compare
+        run: |
+          VERSION_CURRENT=$(cat package.json.current | jq -r .version)
+          VERSION_MAIN=$(cat package.json.main | jq -r .version)
+          if [ "$(printf '%s\n' "$VERSION_MAIN" "$VERSION_CURRENT" | sort -V | head -n1)" = "$VERSION_CURRENT" ]; then
+            echo "Version in package.json ($VERSION_CURRENT) must be greater than main branch ($VERSION_MAIN)." >&2
+            exit 1
+          fi
+      - name: Build Docker image
+        run: docker build -t marp-minimal .
