@@ -1,11 +1,12 @@
 {
   "name": "marp-plus-cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "marp-engine.js",
   "license": "MIT",
   "dependencies": {
+    "@marp-team/marp-cli": "^4.2.2",
+    "cheerio": "^1.1.2",
     "markdown-it-task-lists": "^2.1.1",
-    "mermaid": "^10.0.0",
-    "@marp-team/marp-cli": "^4.2.2"
+    "mermaid": "^10.0.0"
   }
 }

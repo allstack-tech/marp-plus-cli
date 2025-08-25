@@ -1,4 +1,4 @@
-![height:100px](gen/cat.jpg)
+![height:200px](.gen/cat.png)
 
 # Minimal Marp + Mermaid + Tasklist Example
 
