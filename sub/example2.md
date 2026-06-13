@@ -4,7 +4,7 @@ theme: atech-marp
 size: 16:9
 ---
 
-# DrawIO Exxport Test
+# DrawIO Export Test
 
 ---
 
