@@ -15,11 +15,19 @@ It includes:
 - Dockerfile for reproducible, minimal images
 - GitHub Actions pipelines for build, release, and monthly dependency updates
 
+## Version 1.2.0 Updates
+- Added support for remote theme CSS URLs passed to `--theme` and `--theme-set` by downloading the files locally before Marp runs.
+- Added `test.sh` as a repository helper script to build the Docker image, render the `sub/` directory with theme filtering, and verify generated output.
+- Fixed theme-filtered directory rendering so `output/` is written correctly when processing matching files.
+- Added alias-style theme matching for names like `tech-marp` to match `atech-marp` in markdown front matter.
+
 ## Features
 - **Task Lists:** Rendered via `markdown-it-task-lists` plugin
 - **Mermaid Diagrams:** Supports regular fenced mermaid `'''mermaid` and Azure DevOps wiki fenced  `:::mermaid` blocks in markdown; diagrams are rendered in the browser with inlined Mermaid.js
 - **Presentation UI:** Uses Marp CLI for full-featured HTML output
 - **Offline Support:** Mermaid.js is inlined, so no internet access is required to view diagrams
+- **Recursive Directory Processing:** Process entire directories of markdown files in a single command
+- **Theme Filtering:** Filter which markdown files are processed based on their theme directive
 - **Multi-stage Docker Build:** Keeps image size minimal and dependencies isolated
 - **CI/CD:** Automated build, release (with Docker Hub push), and monthly dependency update workflows
 
@@ -30,7 +38,7 @@ It includes:
 docker build -t marp-plus-cli .
 ```
 
-### Render a Markdown File
+### Render a Single Markdown File
 ```sh
 docker run --rm -v "$PWD:/app" marp-plus-cli example.md -o output.html
 ```
@@ -38,6 +46,24 @@ docker run --rm -v "$PWD:/app" marp-plus-cli example.md -o output.html
 ```sh
 docker run --rm -v "$PWD/example.md:/app/example.md" -v "$PWD/output.html:/app/output.html" marp-plus-cli example.md -o output.html
 ```
+
+### Render a Directory Recursively
+Process all markdown files in a directory:
+```sh
+docker run --rm -v "$PWD/input:/input" -v "$PWD/output:/output" marp-plus-cli /input -o /output/
+```
+
+### Render with Theme Filter
+Process only markdown files with a specific theme:
+```sh
+# Filter by built-in theme (e.g., gaia)
+docker run --rm -v "$PWD/input:/input" -v "$PWD/output:/output" marp-plus-cli /input --theme-filter "gaia" -o /output/
+
+# Filter by custom theme path (normalizes ./themes/custom.css and themes/custom.css as equivalent)
+docker run --rm -v "$PWD/input:/input" -v "$PWD/output:/output" marp-plus-cli /input --theme-filter "themes/custom.css" -o /output/
+```
+
+**Note:** Theme filtering only applies to directories. Files without a theme directive in their YAML front matter will be skipped when using `--theme-filter`.
 
 ### Custom Engine
 The Marp CLI uses `marp-engine.js` as a custom engine to preprocess Mermaid blocks and inject Mermaid.js. This enables both presentation UI and browser-based diagram rendering.
