@@ -51,23 +51,44 @@ class MarpMermaidEngine extends Marp {
     // Embed images as base64 if enabled
     if (embedImages && mdPath) {
       const baseDir = path.dirname(mdPath);
-      html = html.replace(/<img([^>]*?)src=["']([^"'>]+)["']([^>]*)>/g, (match, pre, src, post) => {
-        // Skip remote/data URLs
-        if (/^(https?:|data:)/.test(src)) return match;
-        // Always resolve relative to the markdown file's directory
+
+      const embedLocalAsset = (src) => {
+        if (/^(https?:|data:)/.test(src)) return src;
         const absPath = path.isAbsolute(src) ? src : path.resolve(baseDir, src);
         if (fs.existsSync(absPath)) {
           try {
             const mimeType = getMimeType(absPath);
             const data = fs.readFileSync(absPath);
             const base64 = data.toString('base64');
-            return `<img${pre}src="data:${mimeType};base64,${base64}"${post}>`;
+            return `data:${mimeType};base64,${base64}`;
           } catch (e) {
             console.warn("Could not embed image:", absPath, e.message);
-            return match;
           }
         }
-        return match;
+        return src;
+      };
+
+      html = html.replace(/<img([^>]*?)src=["']([^"'>]+)["']([^>]*)>/g, (match, pre, src, post) => {
+        const embedded = embedLocalAsset(src);
+        if (embedded === src) return match;
+        return `<img${pre}src="${embedded}"${post}>`;
+      });
+
+      html = html.replace(/url\(\s*(?:(&quot;|\"|')(?:\\.|[^\\])*?\1|([^'"\)]+?))\s*\)/g, (match) => {
+        const quoteMatch = match.match(/^url\(\s*(&quot;|\"|')/);
+        const quote = quoteMatch ? quoteMatch[1] : '';
+        const srcMatch = match.match(/url\(\s*(?:&quot;|\"|')?([^'"\)]+?)(?:&quot;|\"|')?\s*\)/);
+        if (!srcMatch) return match;
+        const src = srcMatch[1];
+        const embedded = embedLocalAsset(src);
+        if (embedded === src) return match;
+        if (quote === '&quot;') {
+          return `url(&quot;${embedded}&quot;)`;
+        }
+        if (quote === '"' || quote === "'") {
+          return `url(${quote}${embedded}${quote})`;
+        }
+        return `url(${embedded})`;
       });
     } else if (resolveLinks) {
       html = MarpMermaidEngine.rewriteRelativeLinks(html, mdPath, true);

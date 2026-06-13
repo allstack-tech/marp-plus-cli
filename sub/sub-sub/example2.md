@@ -16,4 +16,4 @@ size: 16:9
 
 # Embedded Diagram
 
-![](../.gen/embedded-diagram.svg)
+![bg 30%](../.gen/embedded-diagram.svg)
