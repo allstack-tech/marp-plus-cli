@@ -83,15 +83,20 @@ if [ -z "$TARGET" ]; then
     exit 1
 fi
 
+# Normalize directory target without trailing slash
+TARGET="${TARGET%/}"
+
 # Quote a single argument for safe eval reconstruction
 quote_arg() {
     local s="$1"
     printf "'%s'" "$(printf '%s' "$s" | sed "s/'/'\\\"'\\\"'/g")"
 }
 
-# Parse remaining arguments for --theme-filter, --theme, --theme-set, and --output
+# Parse remaining arguments for --theme-filter, --theme, --theme-set, --embed-images, --keep-dirs, and --output
 THEME_FILTER=""
 OUTPUT_PATH=""
+EMBED_IMAGES=0
+KEEP_DIRS=0
 REMAINING_ARGS=""
 shift
 while [ $# -gt 0 ]; do
@@ -118,6 +123,12 @@ while [ $# -gt 0 ]; do
                 REMAINING_ARGS="$REMAINING_ARGS --theme-set $1"
             fi
             ;;
+        --embed-images)
+            EMBED_IMAGES=1
+            ;;
+        --keep-dirs)
+            KEEP_DIRS=1
+            ;;
         -o|--output)
             shift
             OUTPUT_PATH="$1"
@@ -128,6 +139,10 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+
+if [ "$EMBED_IMAGES" -eq 1 ]; then
+    export MARP_EMBED_IMAGES=1
+fi
 
 # Create positional args for the remaining Marp options
 if [ -n "$REMAINING_ARGS" ]; then
@@ -187,8 +202,15 @@ EOF
         # Process only matching files, one by one so output directory can be specified.
         for md_file in $MATCHING_FILES; do
             if [ -n "$OUTPUT_DIR" ]; then
-                file_name=$(basename "$md_file" .md)
-                marp --engine "$ENGINE_FILE" "$md_file" $REMAINING_ARGS -o "$OUTPUT_DIR/$file_name.html" || exit $?
+                if [ "$KEEP_DIRS" -eq 1 ]; then
+                    rel_path=${md_file#"$TARGET"/}
+                    out_path="$OUTPUT_DIR/${rel_path%.md}.html"
+                    mkdir -p "$(dirname "$out_path")"
+                else
+                    file_name=$(basename "$md_file" .md)
+                    out_path="$OUTPUT_DIR/$file_name.html"
+                fi
+                marp --engine "$ENGINE_FILE" "$md_file" $REMAINING_ARGS -o "$out_path" || exit $?
             else
                 marp --engine "$ENGINE_FILE" "$md_file" $REMAINING_ARGS || exit $?
             fi
@@ -196,7 +218,13 @@ EOF
         exit 0
     else
         # No theme filter - process all markdown files in directory
-        exec marp --engine "$ENGINE_FILE" "$TARGET" $REMAINING_ARGS
+        if [ "$KEEP_DIRS" -eq 1 ] && [ -n "$OUTPUT_PATH" ]; then
+            exec marp --engine "$ENGINE_FILE" -I "$TARGET" -o "$OUTPUT_PATH" $REMAINING_ARGS
+        elif [ -n "$OUTPUT_PATH" ]; then
+            exec marp --engine "$ENGINE_FILE" "$TARGET" -o "$OUTPUT_PATH" $REMAINING_ARGS
+        else
+            exec marp --engine "$ENGINE_FILE" "$TARGET" $REMAINING_ARGS
+        fi
     fi
 elif [ -f "$TARGET" ]; then
     # It's a file - process normally (ignore theme filter for single files)

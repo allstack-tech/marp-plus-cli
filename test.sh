@@ -9,19 +9,19 @@ mkdir -p "$outputDir"
 
 docker build -t marp-plus-cli .
 
-docker run --rm -v "$dataDir":/app -w /app marp-plus-cli sub/ --theme-filter tech-marp --theme-set https://atechpublic.z13.web.core.windows.net/style/marp.css -o ./build/
+docker run --rm -v "$dataDir":/app -w /app marp-plus-cli sub/ --theme-filter tech-marp --theme-set https://atechpublic.z13.web.core.windows.net/style/marp.css --keep-dirs --embed-images -o ./build/
 
-ls -1 "$outputDir"
+find "$outputDir" -type f | sort
 
 echo
-for expected in example.html example2.html; do
+for expected in "example.html" "sub-sub/example2.html"; do
   if [ ! -f "$outputDir/$expected" ]; then
     echo "FAIL: missing $expected"
     exit 1
   fi
 done
 
-if [ -f "$outputDir/example3.html" ]; then
+if [ -f "$outputDir/example3.html" ] || [ -f "$outputDir/sub-sub/example3.html" ]; then
   echo "FAIL: example3.html should not be generated"
   exit 1
 fi

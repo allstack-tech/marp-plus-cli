@@ -10,10 +10,10 @@ size: 16:9
 
 # Regular Export
 
-![](.gen/normal-output.svg)
+![](../.gen/normal-output.svg)
 
 ---
 
 # Embedded Diagram
 
-![](.gen/embedded-diagram.svg)
+![](../.gen/embedded-diagram.svg)

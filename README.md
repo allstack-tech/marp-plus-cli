@@ -15,6 +15,13 @@ It includes:
 - Dockerfile for reproducible, minimal images
 - GitHub Actions pipelines for build, release, and monthly dependency updates
 
+## Version 1.3.0 Updates
+- Added `--keep-dirs` to preserve source markdown directory structure inside the output directory.
+- Added `--embed-images` to optionally inline local images into generated HTML.
+- Embedding is now opt-in to avoid unexpectedly larger output bundles.
+- Continued support for remote theme CSS URLs passed to `--theme` and `--theme-set`.
+- Added better directory-aware output handling for theme-filtered multi-file rendering.
+
 ## Version 1.2.0 Updates
 - Added support for remote theme CSS URLs passed to `--theme` and `--theme-set` by downloading the files locally before Marp runs.
 - Added `test.sh` as a repository helper script to build the Docker image, render the `sub/` directory with theme filtering, and verify generated output.
@@ -64,6 +71,16 @@ docker run --rm -v "$PWD/input:/input" -v "$PWD/output:/output" marp-plus-cli /i
 ```
 
 **Note:** Theme filtering only applies to directories. Files without a theme directive in their YAML front matter will be skipped when using `--theme-filter`.
+
+### Image and Directory Options
+Use `--keep-dirs` to preserve source folder structure in the output directory.
+Use `--embed-images` to inline local image assets into generated HTML.
+```sh
+# Preserve relative directories and embed images into output HTML
+docker run --rm -v "$PWD/input:/input" -v "$PWD/output:/output" marp-plus-cli /input --theme-filter "gaia" --keep-dirs --embed-images -o /output/
+```
+
+The `--embed-images` flag is opt-in so HTML output size stays under control unless the user explicitly requests embedding.
 
 ### Custom Engine
 The Marp CLI uses `marp-engine.js` as a custom engine to preprocess Mermaid blocks and inject Mermaid.js. This enables both presentation UI and browser-based diagram rendering.

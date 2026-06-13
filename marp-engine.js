@@ -30,7 +30,7 @@ class MarpMermaidEngine extends Marp {
     });
     this.markdown.use(markdownItTaskLists, { enabled: true });
     this.resolveRelativeToMd = opts.resolveRelativeToMd || false;
-    this.embedImages = opts.embedImages !== undefined ? opts.embedImages : true;
+    this.embedImages = process.env.MARP_EMBED_IMAGES ? true : (opts.embedImages !== undefined ? opts.embedImages : false);
   }
 
   render(markdown, opts = {}) {
